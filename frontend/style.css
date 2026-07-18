@@ -1,0 +1,234 @@
+/* ===========================================================================
+   Agentic Studio — a dispatch board for an AI product team.
+   Direction: "studio floor / ops board" — deep midnight blueprint, amber
+   dispatch light, mono status readouts. The signature is the manager desk
+   wiring dispatch lines down to the specialist desks as work goes live.
+   =========================================================================== */
+
+:root {
+  --bg:        #0d1220;
+  --bg-2:      #10182a;
+  --panel:     #151f34;
+  --panel-2:   #1b2740;
+  --line:      #26344f;
+  --ink:       #e8eef9;
+  --muted:     #8697b5;
+  --faint:     #5c6d8c;
+
+  --amber:     #f5a524;   /* active / dispatch light */
+  --blue:      #6699f2;   /* wiring / accent */
+  --green:     #38d39a;   /* done */
+  --red:       #f0736f;   /* error */
+
+  --display: "Space Grotesk", system-ui, sans-serif;
+  --body: "Inter", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --r: 14px;
+  --shadow: 0 18px 50px -24px rgba(0,0,0,.8);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--body);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 78% -8%, rgba(102,153,242,.10), transparent 60%),
+    radial-gradient(900px 500px at 8% 0%, rgba(245,165,36,.08), transparent 55%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* subtle blueprint grain */
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .5;
+  background-image:
+    linear-gradient(rgba(38,52,79,.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(38,52,79,.25) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 90%);
+}
+
+/* --- Topbar --------------------------------------------------------------- */
+.topbar {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px clamp(18px, 4vw, 48px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { color: var(--amber); font-size: 20px; }
+.brand-name {
+  font-family: var(--display); font-weight: 700; letter-spacing: .18em;
+  font-size: 15px;
+}
+.status-strip { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--muted); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); box-shadow: 0 0 0 0 rgba(56,211,154,.5); }
+.dot.ok  { background: var(--green); animation: ping 2.4s ease-out infinite; }
+.dot.bad { background: var(--red); }
+@keyframes ping { 0%{box-shadow:0 0 0 0 rgba(56,211,154,.45);} 70%{box-shadow:0 0 0 8px rgba(56,211,154,0);} 100%{box-shadow:0 0 0 0 rgba(56,211,154,0);} }
+
+/* --- Layout --------------------------------------------------------------- */
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 1080px; margin: 0 auto;
+  padding: clamp(28px, 5vw, 64px) clamp(18px, 4vw, 48px) 100px;
+  display: flex; flex-direction: column; gap: 42px;
+}
+
+.eyebrow { color: var(--amber); font-size: 11px; letter-spacing: .28em; }
+
+/* --- Console (work order) ------------------------------------------------- */
+.console {
+  background: linear-gradient(180deg, var(--panel), var(--bg-2));
+  border: 1px solid var(--line);
+  border-radius: calc(var(--r) + 4px);
+  padding: clamp(26px, 4vw, 44px);
+  box-shadow: var(--shadow);
+}
+.console-head h1 {
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(30px, 5vw, 46px); line-height: 1.04;
+  margin: 14px 0 12px; letter-spacing: -.015em;
+}
+.lede { color: var(--muted); max-width: 60ch; line-height: 1.6; margin: 0; font-size: 15px; }
+.lede code { font-family: var(--mono); color: var(--amber); background: rgba(245,165,36,.08); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+
+.order-form { margin-top: 28px; display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 720px) {
+  .order-form { grid-template-columns: minmax(180px, 260px) 1fr auto; align-items: end; }
+  .field--grow { grid-column: auto; }
+}
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field-label { font-size: 10.5px; letter-spacing: .22em; color: var(--faint); }
+.field input, .field textarea {
+  font-family: var(--body); font-size: 15px; color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 13px 14px; resize: vertical; width: 100%;
+  transition: border-color .18s, box-shadow .18s;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--faint); }
+.field input:focus, .field textarea:focus {
+  outline: none; border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(245,165,36,.16);
+}
+
+.dispatch {
+  font-family: var(--display); font-weight: 600; font-size: 15px;
+  display: inline-flex; align-items: center; gap: 10px;
+  color: #201400; background: var(--amber);
+  border: none; border-radius: 10px; padding: 14px 22px; cursor: pointer;
+  white-space: nowrap; transition: transform .12s, box-shadow .18s, filter .18s;
+  box-shadow: 0 10px 26px -10px rgba(245,165,36,.7);
+}
+.dispatch:hover { filter: brightness(1.06); box-shadow: 0 14px 30px -10px rgba(245,165,36,.85); }
+.dispatch:active { transform: translateY(1px); }
+.dispatch:disabled { opacity: .55; cursor: not-allowed; filter: grayscale(.3); box-shadow: none; }
+.dispatch-arrow { transition: transform .18s; }
+.dispatch:hover:not(:disabled) .dispatch-arrow { transform: translateX(3px); }
+
+/* --- Floor ---------------------------------------------------------------- */
+.floor-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+}
+.run-meta { color: var(--faint); font-size: 12px; }
+
+/* Desk (shared) */
+.desk {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px 18px 16px;
+  transition: border-color .3s, box-shadow .3s, transform .3s;
+}
+.desk-top { display: flex; align-items: center; gap: 13px; }
+.avatar {
+  font-size: 24px; width: 46px; height: 46px; flex: none;
+  display: grid; place-items: center; border-radius: 11px;
+  background: var(--panel-2); border: 1px solid var(--line);
+}
+.desk-id { flex: 1; min-width: 0; }
+.desk-id h3 { font-family: var(--display); font-weight: 600; font-size: 16px; margin: 0; }
+.role { font-size: 10px; letter-spacing: .2em; color: var(--faint); }
+
+.pill {
+  font-size: 11px; letter-spacing: .05em; text-transform: lowercase;
+  padding: 5px 11px; border-radius: 999px; flex: none;
+  background: var(--panel-2); color: var(--muted); border: 1px solid var(--line);
+}
+.notes { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin: 13px 0 0; }
+.notes:empty { display: none; }
+
+.files { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.files li {
+  font-family: var(--mono); font-size: 12px; color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px; word-break: break-all;
+  display: flex; align-items: center; gap: 8px;
+}
+.files li::before { content: "▸"; color: var(--green); flex: none; }
+
+/* Manager desk: wider, top of the org */
+.desk--manager {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border-color: #2e4066;
+}
+
+/* Dispatch wiring between manager and specialists */
+.dispatch-lines {
+  height: 34px; display: grid; grid-template-columns: repeat(4, 1fr);
+  margin: 4px auto 4px; max-width: 80%;
+}
+.dispatch-lines span {
+  border-left: 2px solid var(--line);
+  margin: 0 auto; width: 0;
+  transition: border-color .4s;
+}
+.floor[data-live="1"] .dispatch-lines span { border-color: var(--blue); }
+
+.desk-grid {
+  margin-top: 6px;
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+/* --- Status states -------------------------------------------------------- */
+.desk[data-status="working"] {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px rgba(245,165,36,.25), 0 18px 40px -22px rgba(245,165,36,.5);
+}
+.desk[data-status="working"] .pill { background: rgba(245,165,36,.14); color: var(--amber); border-color: rgba(245,165,36,.4); }
+.desk[data-status="working"] .avatar { animation: bob 1.4s ease-in-out infinite; }
+.desk[data-status="working"] .pill::after {
+  content: ""; display: inline-block; width: 5px; height: 5px; margin-left: 6px;
+  border-radius: 50%; background: var(--amber); animation: blink .9s steps(2) infinite; vertical-align: middle;
+}
+@keyframes bob { 50% { transform: translateY(-3px); } }
+@keyframes blink { 50% { opacity: .2; } }
+
+.desk[data-status="done"] { border-color: rgba(56,211,154,.4); }
+.desk[data-status="done"] .pill { background: rgba(56,211,154,.14); color: var(--green); border-color: rgba(56,211,154,.4); }
+
+.desk[data-status="error"] { border-color: rgba(240,115,111,.5); }
+.desk[data-status="error"] .pill { background: rgba(240,115,111,.14); color: var(--red); border-color: rgba(240,115,111,.45); }
+
+.desk[data-status="skipped"] { opacity: .5; }
+.desk[data-status="skipped"] .pill { text-transform: lowercase; }
+
+/* --- Toast / errors ------------------------------------------------------- */
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  background: var(--panel-2); border: 1px solid var(--red); color: var(--ink);
+  padding: 13px 18px; border-radius: 10px; font-size: 14px; z-index: 20;
+  box-shadow: var(--shadow); max-width: 90vw;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

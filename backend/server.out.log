@@ -1,0 +1,11 @@
+INFO:     127.0.0.1:51897 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51897 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62871 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62871 - "GET /style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51038 - "GET /app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51038 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51038 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58222 - "POST /api/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58222 - "GET /api/jobs/31e700bc7842 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58222 - "GET /api/jobs/31e700bc7842 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58222 - "GET /api/jobs/31e700bc7842 HTTP/1.1" 200 OK

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic Studio — dispatch a task to your AI team</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◈</span>
+      <span class="brand-name">AGENTIC&nbsp;STUDIO</span>
+    </div>
+    <div class="status-strip" id="healthStrip">
+      <span class="dot" id="healthDot"></span>
+      <span id="healthText" class="mono">connecting…</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Work order console -->
+    <section class="console" aria-label="Create a work order">
+      <div class="console-head">
+        <span class="eyebrow mono">WORK ORDER</span>
+        <h1>Brief your team. They build it.</h1>
+        <p class="lede">Describe what you want. The Project Manager breaks it down and dispatches
+          real work to the frontend, backend, design, and content desks — every deliverable lands
+          as a file under <code>agentic-task/</code>.</p>
+      </div>
+
+      <form id="taskForm" class="order-form">
+        <label class="field">
+          <span class="field-label mono">PROJECT NAME</span>
+          <input id="projectName" type="text" placeholder="e.g. sunset-travel-landing" autocomplete="off" />
+        </label>
+        <label class="field field--grow">
+          <span class="field-label mono">THE TASK</span>
+          <textarea id="taskInput" rows="3" placeholder="e.g. Build a landing page for a travel agency with a booking form and write a launch blog post."></textarea>
+        </label>
+        <button type="submit" id="dispatchBtn" class="dispatch">
+          <span class="dispatch-label">Dispatch to team</span>
+          <span class="dispatch-arrow">→</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- The floor -->
+    <section class="floor" id="floor" hidden aria-live="polite">
+      <div class="floor-head">
+        <span class="eyebrow mono">STUDIO FLOOR</span>
+        <span class="run-meta mono" id="runMeta"></span>
+      </div>
+
+      <!-- Manager -->
+      <article class="desk desk--manager" id="desk-manager" data-status="idle">
+        <div class="desk-top">
+          <span class="avatar" id="avatar-manager">🧑‍💼</span>
+          <div class="desk-id">
+            <h3 id="title-manager">Project Manager</h3>
+            <span class="role mono">DISPATCH</span>
+          </div>
+          <span class="pill mono" id="pill-manager">idle</span>
+        </div>
+        <p class="notes" id="notes-manager"></p>
+      </article>
+
+      <div class="dispatch-lines" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+
+      <!-- Specialist desks -->
+      <div class="desk-grid" id="deskGrid"></div>
+    </section>
+  </main>
+
+  <template id="deskTemplate">
+    <article class="desk" data-status="idle">
+      <div class="desk-top">
+        <span class="avatar"></span>
+        <div class="desk-id">
+          <h3 class="desk-title"></h3>
+          <span class="role mono"></span>
+        </div>
+        <span class="pill mono">idle</span>
+      </div>
+      <p class="notes"></p>
+      <ul class="files"></ul>
+    </article>
+  </template>
+
+  <script src="/app.js"></script>
+</body>
+</html>

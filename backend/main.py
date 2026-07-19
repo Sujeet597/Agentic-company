@@ -8,6 +8,8 @@ Run:
 Then open http://localhost:8000
 """
 
+import os
+import time
 import uuid
 import asyncio
 from pathlib import Path
@@ -18,10 +20,14 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Load .env from the project root (one level up from backend/).
+# Load .env for optional overrides (e.g. AGENT_MODEL) from the project root.
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-import agents  # noqa: E402  (import after load_dotenv so key is available)
+# Force the Claude Agent SDK to authenticate via your local Claude Code login
+# instead of a pay-as-you-go API key. Remove any key that .env/env may have set.
+os.environ.pop("ANTHROPIC_API_KEY", None)
+
+import agents  # noqa: E402  (import after env is prepared)
 
 app = FastAPI(title="Agentic Company")
 
@@ -55,6 +61,8 @@ async def create_job(req: TaskRequest):
         "plan": None,
         "error": None,
         "output_dir": None,
+        "created_at": time.time(),
+        "ended_at": None,
         "agents": agents.new_agents_state(),
     }
     JOBS[job_id] = job
@@ -81,13 +89,45 @@ async def get_job(job_id: str):
     job = JOBS.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found.")
-    return JSONResponse(job)
+    return JSONResponse({**job, "server_now": time.time()})
+
+
+@app.post("/api/jobs/{job_id}/agents/{agent_key}/continue")
+async def continue_agent(job_id: str, agent_key: str):
+    job = JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found.")
+    a = job["agents"].get(agent_key)
+    if not a or agent_key == "manager":
+        raise HTTPException(status_code=400, detail="Not a resumable agent.")
+    if a["status"] == "working":
+        raise HTTPException(status_code=409, detail="Agent is already working.")
+
+    # Flip status synchronously so the next poll sees 'working' (no race).
+    a["status"] = "working"
+    a["notes"] = ""
+    job["status"] = "building"
+
+    def on_update():
+        pass
+
+    asyncio.create_task(_resume(job, agent_key, on_update))
+    return {"ok": True}
+
+
+async def _resume(job: dict, agent_key: str, on_update):
+    try:
+        await agents.resume_agent(job, agent_key, on_update)
+    except Exception as e:  # noqa: BLE001
+        job["agents"][agent_key]["status"] = "error"
+        job["agents"][agent_key]["notes"] = str(e)
+        agents.recompute_status(job)
 
 
 @app.get("/api/health")
 async def health():
-    import os
-    return {"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY"))}
+    # Auth comes from your local Claude Code login (Claude Agent SDK), not an API key.
+    return {"ok": True, "auth": "claude-code"}
 
 
 # --- Static frontend ------------------------------------------------------

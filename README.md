@@ -14,28 +14,34 @@ breaks it down and dispatches real work to four specialist agents:
 Every deliverable is written to disk under `agentic-task/<your-project>/<agent>/`.
 The manager only assigns the specialists a task actually needs.
 
+## Authentication — no API key
+
+The app runs on the **Claude Agent SDK**, which uses your existing **Claude Code
+login** (the `claude` CLI you use in the terminal). There is **no Anthropic API
+key** and no separate pay-as-you-go billing — it uses the same Claude you're
+already signed into. Requires the `claude` CLI and Node.js installed (they are,
+if you use Claude Code).
+
 ## Setup
 
 ```powershell
 cd C:\Users\V53239\agentic-company
-copy .env.example .env       # then edit .env and paste your Anthropic API key
-
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Get a key at https://console.anthropic.com — it goes in `.env` as `ANTHROPIC_API_KEY`.
+Make sure you're logged in to Claude Code (`claude` works in your terminal).
 
 ## Run
 
 ```powershell
 # from the backend/ folder, with the venv active:
-uvicorn main:app --reload
+uvicorn main:app --host 127.0.0.1 --port 8001
 ```
 
-Open **http://localhost:8000**, type a task, and click **Dispatch to team**.
+Open **http://localhost:8001**, type a task, and click **Dispatch to team**.
 Watch each desk go from *idle → working → done*, then check the files that
 appeared under `agentic-task/`.
 
@@ -45,10 +51,11 @@ appeared under `agentic-task/`.
   the task and polls the job for live status.
 - **Backend** (`backend/`):
   - `main.py` — FastAPI: serves the UI, creates jobs, runs orchestration in the
-    background, exposes job status for polling.
-  - `agents.py` — the team. The manager uses a forced tool call to return a
-    structured plan; each specialist uses a forced tool call to return files,
-    which are written safely under `agentic-task/`.
+    background, exposes job status for polling. Clears any `ANTHROPIC_API_KEY`
+    so auth always goes through your Claude Code login.
+  - `agents.py` — the team. The manager returns a JSON plan; each specialist
+    runs as a Claude Agent SDK session with file tools and writes its own
+    files directly under `agentic-task/<project>/<agent>/`.
 - Agents run **concurrently** (`asyncio.gather`) once the manager has planned.
 
 ## Example tasks to try
@@ -59,7 +66,9 @@ appeared under `agentic-task/`.
 
 ## Notes
 
-- Model defaults to `claude-sonnet-5`; override with `AGENT_MODEL` / `MANAGER_MODEL` in `.env`.
+- Uses your Claude Code default model; override with `AGENT_MODEL` in `.env`.
 - Job state is in-memory — restarting the server clears run history (files on disk stay).
 - Each run gets a unique folder suffix so runs never overwrite each other.
+- Agents can run shell commands (e.g. the backend agent may run its own tests),
+  so runs can leave `__pycache__` / `.pytest_cache` folders — that's real work, not clutter.
 "# Agentic-company" 

@@ -137,7 +137,18 @@ body {
   display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
   margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
 }
+.run-info { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
 .run-meta { color: var(--faint); font-size: 12px; }
+.run-timer { color: var(--amber); font-size: 12px; font-weight: 500; }
+.run-timer:empty { display: none; }
+.estimate-hint { color: var(--faint); font-size: 11px; margin: -10px 0 22px; text-align: right; opacity: .8; }
+
+/* Per-desk elapsed timer, sits under the role label */
+.timer { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.timer:empty { display: none; }
+.desk[data-status="working"] .timer { color: var(--amber); }
+.desk[data-status="done"] .timer { color: var(--green); }
+.desk[data-status="error"] .timer { color: var(--red); }
 
 /* Desk (shared) */
 .desk {
@@ -220,6 +231,18 @@ body {
 
 .desk[data-status="skipped"] { opacity: .5; }
 .desk[data-status="skipped"] .pill { text-transform: lowercase; }
+
+/* Continue button on an errored desk */
+.continue-btn {
+  margin-top: 14px; width: 100%;
+  font-family: var(--display); font-weight: 600; font-size: 13px;
+  color: #201400; background: var(--amber);
+  border: none; border-radius: 9px; padding: 10px 14px; cursor: pointer;
+  transition: filter .15s, transform .1s, opacity .15s;
+}
+.continue-btn:hover:not(:disabled) { filter: brightness(1.07); }
+.continue-btn:active:not(:disabled) { transform: translateY(1px); }
+.continue-btn:disabled { opacity: .6; cursor: default; }
 
 /* --- Toast / errors ------------------------------------------------------- */
 .toast {

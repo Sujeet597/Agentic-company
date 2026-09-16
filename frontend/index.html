@@ -35,10 +35,13 @@
       </div>
 
       <form id="taskForm" class="order-form">
-        <label class="field">
-          <span class="field-label mono">PROJECT NAME</span>
+        <div class="field">
+          <span class="field-label mono">PROJECT</span>
+          <select id="targetSelect">
+            <option value="new">➕ New project</option>
+          </select>
           <input id="projectName" type="text" placeholder="e.g. sunset-travel-landing" autocomplete="off" />
-        </label>
+        </div>
         <label class="field field--grow">
           <span class="field-label mono">THE TASK</span>
           <textarea id="taskInput" rows="3" placeholder="e.g. Build a landing page for a travel agency with a booking form and write a launch blog post."></textarea>

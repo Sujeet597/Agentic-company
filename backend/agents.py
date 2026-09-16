@@ -184,13 +184,13 @@ def _extract_json(text: str) -> dict:
 
 
 def scan_files(agent_dir: Path) -> list:
-    """Files the agent wrote, relative to the output root."""
+    """Files the agent wrote, relative to the output root (skips our metadata file)."""
     if not agent_dir.exists():
         return []
     return sorted(
         str(p.relative_to(OUTPUT_ROOT))
         for p in agent_dir.rglob("*")
-        if p.is_file()
+        if p.is_file() and p.name != ".agentic-job.json"
     )
 
 
@@ -198,15 +198,25 @@ def scan_files(agent_dir: Path) -> list:
 # The agents
 # ---------------------------------------------------------------------------
 
-async def run_manager(task: str) -> dict:
+async def run_manager(task: str, existing_files: list | None = None) -> dict:
     system = (
         MANAGER["system"]
         + " Respond with ONLY a JSON object — no prose, no markdown fences. Shape: "
         '{"summary": string, "tasks": [{"agent": "frontend"|"backend"|"ui_designer"|"content_writer", '
         '"instruction": string, "deliverable": string}]}. Each instruction must be self-contained.'
     )
+    update_note = ""
+    if existing_files:
+        listing = "\n".join(f"- {f}" for f in existing_files[:60])
+        update_note = (
+            "\n\nThis is an UPDATE to an EXISTING project. Files already produced:\n"
+            f"{listing}\n\n"
+            "Assign agents to make the requested changes to the existing project. "
+            "Only assign the agents whose deliverables actually need to change; "
+            "write each instruction as a change request against the current files."
+        )
     prompt = (
-        f"Client task:\n\n{task}\n\n"
+        f"Client task:\n\n{task}\n{update_note}\n\n"
         "Break this into assignments for your team. Only assign agents whose skills are needed. "
         "Return the JSON plan now."
     )
@@ -216,7 +226,9 @@ async def run_manager(task: str) -> dict:
 
 async def run_specialist(agent_key: str, instruction: str, original_task: str,
                          agent_dir: Path, session_out: list | None = None,
-                         resume_session: str | None = None) -> str:
+                         resume_session: str | None = None,
+                         kind: str = "fresh") -> str:
+    """kind: 'fresh' (build new) | 'resume' (finish after an error) | 'update' (change existing)."""
     spec = SPECIALISTS[agent_key]
     system = (
         spec["system"]
@@ -224,10 +236,17 @@ async def run_specialist(agent_key: str, instruction: str, original_task: str,
         "complete file in your current working directory using the Write tool. Do not leave "
         "placeholders or TODOs. When finished, briefly summarize what you built."
     )
-    if resume_session:
+    if kind == "resume":
         prompt = (
             "Continue your assignment where you left off. Check what files already exist, then "
             "finish any incomplete or missing work. When done, briefly summarize what you completed."
+        )
+    elif kind == "update":
+        prompt = (
+            "The project already exists in your current working directory. Apply this update:\n\n"
+            f"{instruction}\n\n"
+            "First read the relevant existing files, then modify them (or add new ones) to satisfy "
+            "the request, keeping everything consistent. When done, briefly summarize what you changed."
         )
     else:
         prompt = (
@@ -246,8 +265,10 @@ async def run_specialist(agent_key: str, instruction: str, original_task: str,
 
 async def orchestrate(job: dict, on_update) -> None:
     task = job["task"]
+    is_update = job.get("mode") == "update"
     project_dir = OUTPUT_ROOT / job["project_slug"]
     project_dir.mkdir(parents=True, exist_ok=True)
+    existing_files = scan_files(project_dir) if is_update else None
 
     # --- Phase 1: Manager plans -------------------------------------------
     job["status"] = "planning"
@@ -257,7 +278,7 @@ async def orchestrate(job: dict, on_update) -> None:
     on_update()
 
     try:
-        plan = await run_manager(task)
+        plan = await run_manager(task, existing_files=existing_files)
     except Exception as e:  # noqa: BLE001
         job["agents"]["manager"]["status"] = "error"
         job["agents"]["manager"]["notes"] = str(e)
@@ -311,9 +332,12 @@ async def orchestrate(job: dict, on_update) -> None:
         a["ended_at"] = None
         on_update()
         sid_out: list = []
+        kind = "update" if is_update else "fresh"
+        resume = a.get("session_id") if is_update else None
         try:
             notes = await run_specialist(key, t["instruction"], task, agent_dir,
-                                         session_out=sid_out)
+                                         session_out=sid_out, resume_session=resume,
+                                         kind=kind)
             if sid_out:
                 a["session_id"] = sid_out[0]
             a["status"] = "done"
@@ -367,7 +391,7 @@ async def resume_agent(job: dict, agent_key: str, on_update) -> None:
     try:
         notes = await run_specialist(
             agent_key, a.get("instruction", ""), job["task"], agent_dir,
-            session_out=sid_out, resume_session=a.get("session_id"),
+            session_out=sid_out, resume_session=a.get("session_id"), kind="resume",
         )
         if sid_out:
             a["session_id"] = sid_out[0]

@@ -13,6 +13,7 @@ const els = {
   form: document.getElementById("taskForm"),
   task: document.getElementById("taskInput"),
   project: document.getElementById("projectName"),
+  target: document.getElementById("targetSelect"),
   btn: document.getElementById("dispatchBtn"),
   floor: document.getElementById("floor"),
   grid: document.getElementById("deskGrid"),
@@ -65,6 +66,37 @@ async function checkHealth() {
   }
 }
 checkHealth();
+
+// --- Project selector (new vs. update existing) ----------------------------
+function syncTargetUI() {
+  const isNew = els.target.value === "new";
+  els.project.style.display = isNew ? "" : "none";
+  const lbl = els.btn.querySelector(".dispatch-label");
+  if (lbl && !els.btn.disabled) lbl.textContent = isNew ? "Dispatch to team" : "Update project";
+}
+
+async function loadProjects(selectJobId) {
+  try {
+    const r = await fetch("/api/projects");
+    if (!r.ok) return;
+    const list = await r.json();
+    const keep = selectJobId ?? els.target.value;
+    els.target.innerHTML = '<option value="new">➕ New project</option>';
+    for (const p of list) {
+      const o = document.createElement("option");
+      o.value = p.job_id;
+      o.textContent = `✏️ ${p.project_name} — update`;
+      els.target.appendChild(o);
+    }
+    if (keep && [...els.target.options].some((o) => o.value === keep)) {
+      els.target.value = keep;
+    }
+    syncTargetUI();
+  } catch { /* ignore */ }
+}
+
+els.target.addEventListener("change", syncTargetUI);
+loadProjects();
 
 // --- Desk scaffolding ------------------------------------------------------
 function buildDesks() {
@@ -194,7 +226,9 @@ function render(job) {
   if ((job.status === "done" || job.status === "error") && !anyWorking) {
     stopPolling();
     els.btn.disabled = false;
-    els.btn.querySelector(".dispatch-label").textContent = "Dispatch to team";
+    // Refresh the selector and point it at the just-run project so the next
+    // dispatch can update it in one click.
+    loadProjects(job.id || currentJobId);
     if (job.status === "error" && job.error) toast(job.error);
   }
 }
@@ -229,17 +263,22 @@ els.form.addEventListener("submit", async (e) => {
   const task = els.task.value.trim();
   if (!task) { toast("Write a task first."); return; }
 
+  const isUpdate = els.target.value !== "new";
   els.btn.disabled = true;
-  els.btn.querySelector(".dispatch-label").textContent = "Dispatching…";
+  els.btn.querySelector(".dispatch-label").textContent = isUpdate ? "Updating…" : "Dispatching…";
   els.floor.hidden = false;
   buildDesks();
   els.floor.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const payload = isUpdate
+    ? { task, parent_job_id: els.target.value }
+    : { task, project_name: els.project.value.trim() || "untitled-project" };
 
   try {
     const r = await fetch("/api/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ task, project_name: els.project.value.trim() || "untitled-project" }),
+      body: JSON.stringify(payload),
     });
     if (!r.ok) {
       const d = await r.json().catch(() => ({}));
@@ -250,7 +289,7 @@ els.form.addEventListener("submit", async (e) => {
   } catch (err) {
     toast(err.message);
     els.btn.disabled = false;
-    els.btn.querySelector(".dispatch-label").textContent = "Dispatch to team";
+    syncTargetUI();
   }
 });
 

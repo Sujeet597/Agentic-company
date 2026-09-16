@@ -1,9 +1,1 @@
-INFO:     127.0.0.1:55291 - "POST /api/jobs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55311 - "GET /api/jobs/74e576ec4b3c HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55323 - "GET /api/jobs/74e576ec4b3c HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55435 - "GET /api/jobs/74e576ec4b3c HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55437 - "GET /api/jobs/74e576ec4b3c HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55439 - "GET /api/jobs/74e576ec4b3c HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55443 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55443 - "GET /app.js HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55443 - "GET /style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52630 - "GET /api/projects HTTP/1.1" 200 OK

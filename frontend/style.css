@@ -106,14 +106,19 @@ body {
 }
 .field { display: flex; flex-direction: column; gap: 8px; }
 .field-label { font-size: 10.5px; letter-spacing: .22em; color: var(--faint); }
-.field input, .field textarea {
+.field input, .field textarea, .field select {
   font-family: var(--body); font-size: 15px; color: var(--ink);
   background: var(--bg); border: 1px solid var(--line);
   border-radius: 10px; padding: 13px 14px; resize: vertical; width: 100%;
   transition: border-color .18s, box-shadow .18s;
 }
+.field select { cursor: pointer; appearance: none; padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238697b5' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.field select + input { margin-top: 8px; }
 .field input::placeholder, .field textarea::placeholder { color: var(--faint); }
-.field input:focus, .field textarea:focus {
+.field input:focus, .field textarea:focus, .field select:focus {
   outline: none; border-color: var(--amber);
   box-shadow: 0 0 0 3px rgba(245,165,36,.16);
 }

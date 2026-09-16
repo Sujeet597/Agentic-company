@@ -72,3 +72,4 @@ appeared under `agentic-task/`.
 - Agents can run shell commands (e.g. the backend agent may run its own tests),
   so runs can leave `__pycache__` / `.pytest_cache` folders — that's real work, not clutter.
 "# Agentic-company" 
+"# agentic-ai-" 
